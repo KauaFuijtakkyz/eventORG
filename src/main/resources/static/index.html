@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventORG - Gerenciamento de Eventos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; }
+        .event-card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-primary { background-color: #007bff; border-color: #007bff; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .form-control:focus { border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25); }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-5">EventORG - Gerenciamento de Eventos</h1>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Criar Evento</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="createForm">
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome</label>
+                                <input type="text" class="form-control" id="nome" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="descricao" class="form-label">Descrição</label>
+                                <textarea class="form-control" id="descricao" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dataInicio" class="form-label">Data de Início</label>
+                                <input type="datetime-local" class="form-control" id="dataInicio" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="datafim" class="form-label">Data de Fim</label>
+                                <input type="datetime-local" class="form-control" id="datafim" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="localEvento" class="form-label">Local do Evento</label>
+                                <input type="text" class="form-control" id="localEvento" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="capacidade" class="form-label">Capacidade</label>
+                                <input type="number" class="form-control" id="capacidade" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="organizador" class="form-label">Organizador</label>
+                                <input type="text" class="form-control" id="organizador" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipo" class="form-label">Tipo</label>
+                                <select class="form-select" id="tipo" required>
+                                    <option value="">Selecione Tipo</option>
+                                    <option value="SEMINARIO">Seminário</option>
+                                    <option value="MUSICA">Música</option>
+                                    <option value="PALESTRA">Palestra</option>
+                                    <option value="WORKSHOP">Workshop</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Criar Evento</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">Listar Eventos</h5>
+                    </div>
+                    <div class="card-body">
+                        <button id="listBtn" class="btn btn-success w-100 mb-3">Carregar Eventos</button>
+                        <div id="eventList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">Buscar por Identificador</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="identificador" class="form-label">Identificador</label>
+                            <input type="text" class="form-control" id="identificador">
+                        </div>
+                        <button id="searchBtn" class="btn btn-info w-100 mb-3">Buscar</button>
+                        <div id="searchResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const baseUrl = '/api/v1/';
+
+        // Criar Evento
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                nome: document.getElementById('nome').value,
+                descricao: document.getElementById('descricao').value,
+                dataInicio: document.getElementById('dataInicio').value,
+                datafim: document.getElementById('datafim').value,
+                localEvento: document.getElementById('localEvento').value,
+                capacidade: parseInt(document.getElementById('capacidade').value),
+                organizador: document.getElementById('organizador').value,
+                tipo: document.getElementById('tipo').value
+            };
+            try {
+                const response = await fetch(baseUrl + 'criarevento', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (response.ok) {
+                    alert('Evento criado com sucesso!');
+                    document.getElementById('createForm').reset();
+                } else {
+                    alert('Erro ao criar evento');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // Listar Eventos
+        document.getElementById('listBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(baseUrl + 'buscareventos');
+                const events = await response.json();
+                const list = document.getElementById('eventList');
+                list.innerHTML = '';
+                if (events.length === 0) {
+                    list.innerHTML = '<p class="text-muted">Nenhum evento encontrado.</p>';
+                    return;
+                }
+                events.forEach(event => {
+                    const eventCard = document.createElement('div');
+                    eventCard.className = 'event-card p-3 mb-3';
+                    eventCard.innerHTML = `
+                        <h6 class="text-primary">${event.nome}</h6>
+                        <p class="mb-1"><strong>Descrição:</strong> ${event.descricao || 'N/A'}</p>
+                        <p class="mb-1"><strong>Identificador:</strong> ${event.identificador}</p>
+                        <p class="mb-1"><strong>Data Início:</strong> ${new Date(event.dataInicio).toLocaleString()}</p>
+                        <p class="mb-1"><strong>Data Fim:</strong> ${new Date(event.datafim).toLocaleString()}</p>
+                        <p class="mb-1"><strong>Local:</strong> ${event.localEvento}</p>
+                        <p class="mb-1"><strong>Capacidade:</strong> ${event.capacidade}</p>
+                        <p class="mb-1"><strong>Organizador:</strong> ${event.organizador}</p>
+                        <p class="mb-1"><strong>Tipo:</strong> ${event.tipo}</p>
+                    `;
+                    list.appendChild(eventCard);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // Buscar por Identificador
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            const id = document.getElementById('identificador').value.trim();
+            if (!id) {
+                alert('Por favor, insira um identificador.');
+                return;
+            }
+            try {
+                const response = await fetch(baseUrl + 'filtrareventos/' + encodeURIComponent(id));
+                if (response.ok) {
+                    const event = await response.json();
+                    const result = document.getElementById('searchResult');
+                    result.innerHTML = `
+                        <div class="event-card p-3">
+                            <h6 class="text-primary">${event.nome}</h6>
+                            <p class="mb-1"><strong>Descrição:</strong> ${event.descricao || 'N/A'}</p>
+                            <p class="mb-1"><strong>Identificador:</strong> ${event.identificador}</p>
+                            <p class="mb-1"><strong>Data Início:</strong> ${new Date(event.dataInicio).toLocaleString()}</p>
+                            <p class="mb-1"><strong>Data Fim:</strong> ${new Date(event.datafim).toLocaleString()}</p>
+                            <p class="mb-1"><strong>Local:</strong> ${event.localEvento}</p>
+                            <p class="mb-1"><strong>Capacidade:</strong> ${event.capacidade}</p>
+                            <p class="mb-1"><strong>Organizador:</strong> ${event.organizador}</p>
+                            <p class="mb-1"><strong>Tipo:</strong> ${event.tipo}</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('searchResult').innerHTML = '<p class="text-danger">Evento não encontrado.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('searchResult').innerHTML = '<p class="text-danger">Erro ao buscar evento.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
