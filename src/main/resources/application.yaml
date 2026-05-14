@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: eventORG
+
+  datasource:
+    url: jdbc:postgresql://localhost:5431/eventorg_db
+    username: postgres
+    password: kaka2911
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    location: classpath:db/migration
+
+server:
+  port: 8080

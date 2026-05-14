@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  posgres:
+    image: postgres:latest
+    container_name: eventorg-db
+    ports:
+      - "5431:5432"
+    environment:
+      - POSTGRES_DB=eventorg_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=kaka2911
+    restart: always
